@@ -1,7 +1,7 @@
 === Woocommerce Product Tabs ===
 Contributors: rabmalin
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=ramrojob1%40gmail%2ecom&lc=US&item_name=Nilambar%20Sharma&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted
-Tags: woocommerce, product, tab, custom, Product Tab, Custom Tab, product tabs
+Tags: woocommerce, product, tab, custom
 Requires at least: 3.8
 Tested up to: 4.0
 Stable tag: 1.0.0
@@ -42,8 +42,8 @@ Nice, make a post on the [Support Forum](http://wordpress.org/support/plugin/woo
 == Screenshots ==
 
 1. Admin panel : Listing Tabs
-1. Tab content in Product editing page
-1. Tabs in front end Product detail page
+2. Tab content in Product editing page
+3. Tabs in front end Product detail page
 
 == Changelog ==
 
