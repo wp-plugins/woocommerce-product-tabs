@@ -14,9 +14,9 @@
  *
  * @wordpress-plugin
  * Plugin Name:       Woocommerce Product Tabs
- * Plugin URI:        http://www.nilambar.net/
+ * Plugin URI:        https://wordpress.org/plugins/woocommerce-product-tabs/
  * Description:       Custom Product Tabs for WooCommerce
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            Nilambar Sharma
  * Author URI:        http://www.nilambar.net/
  * License:           GPL-2.0+
@@ -29,7 +29,12 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
+/**
+ * Check if WooCommerce is active
+ **/
+if ( ! in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+    return;
+}
 // Define
 define( 'WOOCOMMERCE_PRODUCT_TABS_NAME', 'Woocommerce Product Tabs' );
 define( 'WOOCOMMERCE_PRODUCT_TABS_SLUG', 'woocommerce-product-tabs' );

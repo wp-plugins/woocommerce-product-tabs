@@ -13,9 +13,6 @@
 /**
  * The public-facing functionality of the plugin.
  *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the dashboard-specific stylesheet and JavaScript.
- *
  * @package    Woocommerce_Product_Tabs
  * @subpackage Woocommerce_Product_Tabs/public
  * @author     Nilambar Sharma <nilambar@outlook.com>
@@ -76,18 +73,6 @@ class Woocommerce_Product_Tabs_Public {
 	 */
 	public function enqueue_styles() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Woocommerce_Product_Tabs_Public_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Woocommerce_Product_Tabs_Public_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/plugin-name-public.css', array(), $this->version, 'all' );
 
 	}
@@ -99,24 +84,14 @@ class Woocommerce_Product_Tabs_Public {
 	 */
 	public function enqueue_scripts() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Woocommerce_Product_Tabs_Public_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Woocommerce_Product_Tabs_Public_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/plugin-name-public.js', array( 'jquery' ), $this->version, false );
 
 	}
 
 	public function custom_woocommerce_product_tabs( $tabs ){
 
+
+		global $product;
 
 		if ( empty( $this->product_tabs_list ) ) {
 			return $tabs;
@@ -127,11 +102,23 @@ class Woocommerce_Product_Tabs_Public {
 			$wpt_tabs[$key]['id'] = $prd->post_name;
 			$wpt_tabs[$key]['title'] = esc_attr( $prd->post_title );
 			$wpt_tabs[$key]['priority'] = esc_attr( $prd->menu_order );
+			$wpt_tabs[$key]['conditions_category'] = get_post_meta( $prd->ID, '_wpt_conditions_category', true );
 		}
 
 		if ( ! empty( $wpt_tabs ) ) {
 
 			foreach ($wpt_tabs as $key => $tab) {
+
+				// condition check
+				if ( ! empty( $tab['conditions_category'] ) ) {
+
+					$cat_list = wp_get_post_terms( $product->id, 'product_cat', array("fields" => "ids"));
+					if ( ! array_intersect( $cat_list, $tab['conditions_category'] )) {
+						continue;
+					}
+
+				}
+
 				$tab_temp             = array();
 				$tab_temp['title']    = $tab['title'];
 				$tab_temp['priority'] = $tab['priority'];

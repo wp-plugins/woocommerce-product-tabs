@@ -76,19 +76,13 @@ class Woocommerce_Product_Tabs_Admin {
 	 */
 	public function enqueue_styles() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Woocommerce_Product_Tabs_Admin_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Woocommerce_Product_Tabs_Admin_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/woocommerce-product-tabs-admin.css', array(), $this->version, 'all' );
+		$screen = get_current_screen();
+
+		if ( WOOCOMMERCE_PRODUCT_TABS_POST_TYPE_TAB == $screen->id ) {
+			wp_enqueue_style( $this->plugin_name . '-tab', plugin_dir_url( __FILE__ ) . 'css/tab.css', array(), $this->version, 'all' );
+		}
+		// wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/woocommerce-product-tabs-admin.css', array(), $this->version, 'all' );
 
 	}
 
@@ -99,19 +93,7 @@ class Woocommerce_Product_Tabs_Admin {
 	 */
 	public function enqueue_scripts() {
 
-		/**
-		 * This function is provided for demonstration purposes only.
-		 *
-		 * An instance of this class should be passed to the run() function
-		 * defined in Woocommerce_Product_Tabs_Admin_Loader as all of the hooks are defined
-		 * in that particular class.
-		 *
-		 * The Woocommerce_Product_Tabs_Admin_Loader will then create the relationship
-		 * between the defined hooks and the functions defined in this
-		 * class.
-		 */
-
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-product-tabs-admin.js', array( 'jquery' ), $this->version, false );
+		// wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommerce-product-tabs-admin.js', array( 'jquery' ), $this->version, false );
 
 	}
 
@@ -121,12 +103,21 @@ class Woocommerce_Product_Tabs_Admin {
 
 			foreach ( $screens as $screen ) {
 
+				// Settings Metabox
 				add_meta_box(
 					WOOCOMMERCE_PRODUCT_TABS_SLUG . '_tab_section',
 					__( 'Tab: Settings', 'woocommerce-product-tabs' ),
 					array($this,'tab_meta_box_callback'),
 					$screen,
 					'side'
+				);
+				// Conditions Metabox
+				add_meta_box(
+					WOOCOMMERCE_PRODUCT_TABS_SLUG . '_tab_condition_section',
+					__( 'Conditions', 'woocommerce-product-tabs' ),
+					array($this,'tab_conditions_meta_box_callback'),
+					$screen,
+					'normal'
 				);
 			}
 
@@ -140,20 +131,48 @@ class Woocommerce_Product_Tabs_Admin {
 
 
 		$use_default_for_all = get_post_meta( $post->ID, '_wpt_option_use_default_for_all', true );
-		echo '<p><label for="">'.__('Use Default for All');
-		echo '&nbsp;<input type="checkbox" name="_wpt_option_use_default_for_all" id="" value="yes" ';
+		echo '<p><label for="_wpt_option_use_default_for_all">'.__( 'Use Default for All', 'woocommerce-product-tabs' );
+		echo '&nbsp;<input type="checkbox" name="_wpt_option_use_default_for_all" id="_wpt_option_use_default_for_all" value="yes" ';
 		checked( 'yes', $use_default_for_all, true );
 		echo ' />'.'</label>';
 		echo '</p>';
 
 		$priority = $post->menu_order;
-		echo '<p><label for="">'.__('Priority (required)');
-		echo '&nbsp;<input type="text" name="_wpt_option_priority" id="" value="'.$priority.'" class="small-text code" />'.'</label>';
+		echo '<p><label for="_wpt_option_priority">';
+		echo sprintf('%s (%s)',
+			__( 'Priority', 'woocommerce-product-tabs' ),
+			__( 'required', 'woocommerce-product-tabs' )
+		 );
+		echo '&nbsp;<input type="text" name="_wpt_option_priority" id="_wpt_option_priority" value="'.$priority.'" class="small-text code" />'.'</label>';
 		echo '</p>';
+	}
 
+	public function tab_conditions_meta_box_callback(  $post  ){
 
+		$post_id = $post->ID;
+
+		wp_nonce_field( 'wpt_tab_meta_box', 'wpt_meta_box_tab_conditions_nonce' );
+
+		$wpt_conditions_category = array();
+		$wpt_conditions_category = get_post_meta( $post_id, '_wpt_conditions_category', true );
+
+		echo '<h3>'.__( 'Product Categories', 'woocommerce-product-tabs' ).'</h3>';
+
+		$args = array(
+			'walker'     => new Woocommerce_Product_Tabs_Product_Category_Walker(),
+			'taxonomy'   => 'product_cat',
+			'name'       => '_wpt_conditions_category',
+			'hide_empty' => 0,
+			'title_li'   => '',
+			'checked'   => $wpt_conditions_category,
+			);
+
+		echo '<ul class="condition-category-list">';
+		wp_list_categories($args);
+		echo '</ul><!-- .condition-category-list -->';
 
 	}
+
 	public function add_product_meta_boxes(){
 
 		$screens = array( 'product' );
@@ -207,6 +226,40 @@ class Woocommerce_Product_Tabs_Admin {
 			}
 
 		}
+		else{
+			echo __( 'Not available', 'woocommerce-product-tabs' );
+		}
+
+	}
+
+	public function save_tab_meta_box_conditions_content( $post_id ){
+
+		// Check if our nonce is set.
+		if ( ! isset( $_POST['wpt_meta_box_tab_nonce'] ) ) {
+			return;
+		}
+		// Verify that the nonce is valid.
+		if ( ! wp_verify_nonce( $_POST['wpt_meta_box_tab_conditions_nonce'], 'wpt_tab_meta_box' ) ) {
+			return;
+		}
+		// If this is an autosave, our form has not been submitted, so we don't want to do anything.
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		if ( WOOCOMMERCE_PRODUCT_TABS_POST_TYPE_TAB != $_POST['post_type'] ) {
+			return;
+		}
+
+		$wpt_conditions_category = '';
+		if ( isset( $_POST['_wpt_conditions_category'] ) && ! empty( $_POST['_wpt_conditions_category'] ) ) {
+			$wpt_conditions_category = $_POST['_wpt_conditions_category'];
+		}
+		if ( empty( $wpt_conditions_category ) ) {
+			delete_post_meta( $post_id, '_wpt_conditions_category' );
+			return;
+		}
+		update_post_meta( $post_id, '_wpt_conditions_category', $wpt_conditions_category );
 
 	}
 
@@ -286,7 +339,7 @@ class Woocommerce_Product_Tabs_Admin {
 		}
 		echo sprintf('%s%s%s',
 			'<p><strong>',
-			__('Default Content will be displayed if nothing in entered in the Product','woocommerce-product-tabs'),
+			__('Default Content will be displayed if nothing is entered in the Product','woocommerce-product-tabs'),
 			'</strong></p>'
 			);
 	}
@@ -350,7 +403,7 @@ class Woocommerce_Product_Tabs_Admin {
 			8 => __( 'Tab submitted.', 'woocommerce-product-tabs' ),
 			9  => sprintf(
 						__( 'Tab scheduled for: <strong>%1$s</strong>.', 'woocommerce-product-tabs' ),
-						date_i18n( __( 'M j, Y @ G:i', 'your-plugin-textdomain' ), strtotime( $post->post_date ) )
+						date_i18n( __( 'M j, Y @ G:i', 'woocommerce-product-tabs' ), strtotime( $post->post_date ) )
 					),
 			10 => __( 'Tab draft updated.', 'woocommerce-product-tabs' )
 			);

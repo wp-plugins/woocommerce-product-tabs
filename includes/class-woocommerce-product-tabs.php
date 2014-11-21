@@ -69,7 +69,7 @@ class Woocommerce_Product_Tabs {
 	public function __construct() {
 
 		$this->plugin_name = 'woocommerce-product-tabs';
-		$this->version = '1.0.0';
+		$this->version = '1.0.1';
 
 		$this->load_dependencies();
 		$this->set_locale();
@@ -107,6 +107,7 @@ class Woocommerce_Product_Tabs {
 		 * of the plugin.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-woocommerce-product-tabs-i18n.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-woocmmerce-product-tabs-product-category-walker.php';
 
 		/**
 		 * The class responsible for defining all actions that occur in the Dashboard.
@@ -152,17 +153,19 @@ class Woocommerce_Product_Tabs {
 
 		$plugin_admin = new Woocommerce_Product_Tabs_Admin( $this->get_plugin_name(), $this->get_version() );
 
-		// $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
+		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		// $this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
 		$this->loader->add_action( 'edit_form_after_editor', $plugin_admin, 'content_after_editor' );
 
-		// Metabox Stuff
+		// Metabox in Product page
 		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_product_meta_boxes' );
 		$this->loader->add_action( 'save_post', $plugin_admin, 'save_meta_box_content' );
 
+		// Metabox in Tab
 		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'add_tab_meta_boxes' );
 		$this->loader->add_action( 'save_post', $plugin_admin, 'save_tab_meta_box_content' );
+		$this->loader->add_action( 'save_post', $plugin_admin, 'save_tab_meta_box_conditions_content' );
 
 		// Columns in Tab Listing
 		$this->loader->add_filter( 'manage_woo_product_tab_posts_columns', $plugin_admin, 'add_columns_in_tab_listing' );
