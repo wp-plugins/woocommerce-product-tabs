@@ -69,7 +69,7 @@ class Woocommerce_Product_Tabs {
 	public function __construct() {
 
 		$this->plugin_name = 'woocommerce-product-tabs';
-		$this->version = '1.0.1';
+		$this->version = '1.1';
 
 		$this->load_dependencies();
 		$this->set_locale();
@@ -196,7 +196,9 @@ class Woocommerce_Product_Tabs {
 
 		// Public custom hooks
 		$this->loader->add_filter( 'init', $plugin_public, 'custom_post_types' );
-		$this->loader->add_filter( 'woocommerce_product_tabs', $plugin_public, 'custom_woocommerce_product_tabs', 20 );
+    $this->loader->add_filter( 'woocommerce_product_tabs', $plugin_public, 'custom_woocommerce_product_tabs', 20 );
+
+		$this->loader->add_filter( 'wpt_filter_product_tabs', $plugin_public, 'tab_status_check' );
 
 	}
 

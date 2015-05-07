@@ -131,20 +131,22 @@ class Woocommerce_Product_Tabs_Admin {
 
 
 		$use_default_for_all = get_post_meta( $post->ID, '_wpt_option_use_default_for_all', true );
-		echo '<p><label for="_wpt_option_use_default_for_all">'.__( 'Use Default for All', 'woocommerce-product-tabs' );
-		echo '&nbsp;<input type="checkbox" name="_wpt_option_use_default_for_all" id="_wpt_option_use_default_for_all" value="yes" ';
-		checked( 'yes', $use_default_for_all, true );
-		echo ' />'.'</label>';
+		echo '<p><label for="_wpt_option_use_default_for_all"><strong>'.__( 'Use Default for All', 'woocommerce-product-tabs' ). '</strong>' ;
+    echo '</label>';
 		echo '</p>';
+    echo '<input type="checkbox" name="_wpt_option_use_default_for_all" id="_wpt_option_use_default_for_all" value="yes" ';
+    checked( 'yes', $use_default_for_all, true );
+    echo ' />';
+    echo '<span>' . __( 'Check to display default content in all products', 'woocommerce-product-tabs' ) . '</span>';
 
 		$priority = $post->menu_order;
-		echo '<p><label for="_wpt_option_priority">';
+		echo '<p><label for="_wpt_option_priority"><strong>';
 		echo sprintf('%s (%s)',
 			__( 'Priority', 'woocommerce-product-tabs' ),
 			__( 'required', 'woocommerce-product-tabs' )
 		 );
-		echo '&nbsp;<input type="text" name="_wpt_option_priority" id="_wpt_option_priority" value="'.$priority.'" class="small-text code" />'.'</label>';
-		echo '</p>';
+		echo '</strong></label></p>';
+    echo '<input type="number" name="_wpt_option_priority" id="_wpt_option_priority" value="'.$priority.'" min="1"/>';
 	}
 
 	public function tab_conditions_meta_box_callback(  $post  ){
@@ -156,12 +158,12 @@ class Woocommerce_Product_Tabs_Admin {
 		$wpt_conditions_category = array();
 		$wpt_conditions_category = get_post_meta( $post_id, '_wpt_conditions_category', true );
 
-		echo '<h3>'.__( 'Product Categories', 'woocommerce-product-tabs' ).'</h3>';
+    echo '<h4>'.__( 'Product Categories', 'woocommerce-product-tabs' ).'</h4>';
+		echo '<p>'.__( 'Select categories if you want to show tab in selected category only. If nothing is selected it will be shown for all categories. ', 'woocommerce-product-tabs' ).'</p>';
 
 		$args = array(
 			'walker'     => new Woocommerce_Product_Tabs_Product_Category_Walker(),
 			'taxonomy'   => 'product_cat',
-			'name'       => '_wpt_conditions_category',
 			'hide_empty' => 0,
 			'title_li'   => '',
 			'checked'   => $wpt_conditions_category,
@@ -252,8 +254,8 @@ class Woocommerce_Product_Tabs_Admin {
 		}
 
 		$wpt_conditions_category = '';
-		if ( isset( $_POST['_wpt_conditions_category'] ) && ! empty( $_POST['_wpt_conditions_category'] ) ) {
-			$wpt_conditions_category = $_POST['_wpt_conditions_category'];
+		if ( isset( $_POST['wpt_product_category'] ) && ! empty( $_POST['wpt_product_category'] ) ) {
+			$wpt_conditions_category = $_POST['wpt_product_category'];
 		}
 		if ( empty( $wpt_conditions_category ) ) {
 			delete_post_meta( $post_id, '_wpt_conditions_category' );
